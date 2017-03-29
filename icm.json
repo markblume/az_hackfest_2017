@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {
+    "apiVersion": {
+      "publicIPAddresses": "2016-03-30"
+    }
+  },
+
+  "resources": [
+    {   "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/publicIPAddresses/oracle-se'.",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "myIPAddress",
+        "apiVersion": "[variables('apiVersion').publicIPAddresses]",
+        "location": "northeurope",
+        "properties": {
+            "publicIPAllocationMethod": "Dynamic",
+            "idleTimeoutInMinutes": 4,
+            "dnsSettings": {
+                "domainNameLabel": "my-own-foo-bar-ip-address"
+            }
+        },
+        "dependsOn": []
+    }
+  ],
+  "outputs": {
+    "result": {
+      "value": "Hello World",
+      "type" : "string"
+    }
+  }
+}
