@@ -4,7 +4,7 @@
     "parameters": {
         "tenantName": {
             "type": "string",
-            "defaultValue": "nrw"
+            "defaultValue": "foo"
         },
         "size": {
             "type": "string",
@@ -38,7 +38,7 @@
 
             },
             "vnet": {
-                "name": "cluster-net')]",
+                "name": "[concat(parameters('tenantName'),'-net')]",
                 "address": "10.0.0.0/16",
                 "subnet": {
                     "web": {
@@ -69,14 +69,29 @@
         }
     },
     "resources": [
-      {
-          "name": "shared-resources",
+      {   "name": "shared-resources",
           "type": "Microsoft.Resources/deployments",
           "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
           "properties": {
               "mode": "Incremental",
               "templateLink": {
                   "uri": "[concat(variables('commonSettings').repositoryUrl, 'shared-resources.json')]",
+                  "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                  "commonSettings": {
+                      "value": "[variables('commonSettings')]"
+                  }
+              }
+          }
+      },
+      {   "name": "compute-resources",
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
+          "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'compute_', parameters('size'), '.json')]",
                   "contentVersion": "1.0.0.0"
               },
               "parameters": {
