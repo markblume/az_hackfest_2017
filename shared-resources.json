@@ -1,24 +1,62 @@
-﻿{
+{
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": { "commonSettings": { "type": "object" } },
-    "variables": {
-      "commonSettings": "[parameters('commonSettings')]"
-    },
     "resources": [
-      {   "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/publicIPAddresses/oracle-se'.",
-          "type": "Microsoft.Network/publicIPAddresses",
-          "name": "myIPAddress",
-          "apiVersion": "[variables('commonSettings').apiVersions.publicIPAddresses]",
-          "location": "northeurope",
-          "properties": {
-              "publicIPAllocationMethod": "Dynamic",
-              "idleTimeoutInMinutes": 4,
-              "dnsSettings": {
-                  "domainNameLabel": "my-own-foo-bar-ip-address"
-              }
-          },
-          "dependsOn": []
-      }
+        {   "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "name": "[parameters('commonSettings').vnet.subnet.web.nsgName]",
+            "tags": { "displayName": "NetworkSecurityGroup web" },
+            "properties": {
+                "securityRules": [
+                  ]
+            }
+        },
+        {   "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "name": "[parameters('commonSettings').vnet.subnet.app.nsgName]",
+            "tags": { "displayName": "NetworkSecurityGroup app" },
+            "properties": {
+                "securityRules": [
+                ]
+            }
+        },
+        {   "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "[parameters('commonSettings').constants.apiVersions.virtualNetworks]",
+            "location": "[resourceGroup().location]",
+            "name": "[parameters('commonSettings').vnet.name]",
+            "tags": { "displayName": "Virtual Network" },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', parameters('commonSettings').vnet.subnet.web.nsgName)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', parameters('commonSettings').vnet.subnet.app.nsgName)]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('commonSettings').vnet.address]"
+                    ]
+                },
+                "subnets": [
+                    {   "name": "[parameters('commonSettings').vnet.subnet.web.name]",
+                        "properties": {
+                            "addressPrefix": "[parameters('commonSettings').vnet.subnet.web.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('commonSettings').vnet.subnet.web.nsgName)]"
+                            }
+                        }
+                    },
+                    {   "name": "[parameters('commonSettings').vnet.subnet.app.name]",
+                        "properties": {
+                            "addressPrefix": "[parameters('commonSettings').vnet.subnet.app.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('commonSettings').vnet.subnet.app.nsgName)]"
+                            }
+                        }
+                    },
+                ]
+            }
+        }
     ]
 }

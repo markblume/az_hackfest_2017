@@ -88,9 +88,6 @@
       }
     ],
     "outputs": {
-      "foo": {
-          "type": "object",
-          "value": "[deployment().properties]"
-      }
+
     }
 }
