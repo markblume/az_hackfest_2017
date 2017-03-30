@@ -270,7 +270,7 @@
                             "frontendPort": 80,
                             "backendPort": 80,
                             "enableFloatingIP": false,
-                            "idleTimeoutInMinutes": 2,
+                            "idleTimeoutInMinutes": 4,
                             "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/frontendIPConfigurations/', 'webFrontendIPConfiguration')]" },
                             "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" },
                             "probe": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/probes/', 'httpProbe')]" }
