@@ -1,6 +1,6 @@
 ﻿{
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "contentVersion": "1.2.2",
     "parameters": {
         "tenantName": {
             "type": "string",
@@ -23,7 +23,7 @@
             "database":  "database"
         },
         "commonSettings": {
-            "repositoryUrl": "[uri(deployment().properties.templateLink.uri, './')]",
+            "repositoryUrl": "https://raw.githubusercontent.com/markblume/az_hackfest_2017/master/",
             "apiVersions": {
                   "storageAccounts": "2015-06-15",
                   "networkSecurityGroups": "2015-06-15",
@@ -42,14 +42,14 @@
                 "address": "10.0.0.0/16",
                 "subnet": {
                     "web": {
-                        "name": "[concat('subnet-', web]",
-                        "nsgName": "[concat('nsg-', web]",
+                        "name": "[concat('subnet-', 'web')]",
+                        "nsgName": "[concat('nsg-', 'web')]",
                         "addressRangePrefix": "10.0.0",
                         "address": "10.0.0.0/24"
                     },
                     "app": {
-                        "name": "[concat('subnet-', app)]",
-                        "nsgName": "[concat('nsg-', app)]",
+                        "name": "[concat('subnet-', 'app')]",
+                        "nsgName": "[concat('nsg-', 'app')]",
                         "addressRangePrefix": "10.0.1",
                         "address": "10.0.1.0/24"
                     }
@@ -69,9 +69,10 @@
         }
     },
     "resources": [
-      {   "name": "shared-resources",
+      {
+          "name": "shared-resources",
           "type": "Microsoft.Resources/deployments",
-          "apiVersion": "[variables('commonSettings').constants.apiVersions.deployments]",
+          "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
           "properties": {
               "mode": "Incremental",
               "templateLink": {
@@ -88,8 +89,8 @@
     ],
     "outputs": {
       "foo": {
-          "type": "string",
-          "value": "bar"
+          "type": "object",
+          "value": "[deployment().properties]"
       }
     }
 }
