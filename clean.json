@@ -276,7 +276,18 @@
                             "probe": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/probes/', 'httpProbe')]" }
                         }
                     }
-                ]
+                ],
+				"inboundNatPools": [
+					{
+						"name": "[concat('loadbalancer-', 'web', '-ssh-access')]",
+						"properties": {
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/frontendIPConfigurations/', 'webFrontendIPConfiguration')]" },
+							"protocol": "tcp",
+							"backendPort": 22,
+							"frontendPortRangeStart": 2000, "frontendPortRangeEnd": 2100
+						}
+					}
+				]
             }
         },
 		{

@@ -1,6 +1,8 @@
 
 # $tenantName = (Get-Content -Path "tenantName.txt").Trim()
 $tenantName = "chris"
+$resourceGroupName="intershop1"
+
 $useGermany = $false
 
 if ($useGermany) {
@@ -24,7 +26,6 @@ $repositoryUrl = "https://raw.githubusercontent.com/$($githubUser)/$($githubProj
 Write-Host "Pusing to '$($repositoryUrl)'"
 $_ignore = & git push origin master -q
 
-$resourceGroupName="intershop"
 
 $commonSettings = @{
 	tenantName=$tenantName
