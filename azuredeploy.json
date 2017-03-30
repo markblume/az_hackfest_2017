@@ -1,0 +1,95 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tenantName": {
+            "type": "string",
+            "defaultValue": "nrw"
+        },
+        "size": {
+            "type": "string",
+            "allowedValues": [
+                "small",
+                "medium"
+            ],
+            "defaultValue": "medium"
+        }
+    },
+    "variables": {
+        "tierName": {
+            "dmz":       "dmz",
+            "appserver": "app",
+            "solr":      "solr",
+            "database":  "database"
+        },
+        "commonSettings": {
+            "repositoryUrl": "[uri(deployment().properties.templateLink.uri, './')]",
+            "apiVersions": {
+                  "storageAccounts": "2015-06-15",
+                  "networkSecurityGroups": "2015-06-15",
+                  "loadBalancers": "2016-03-30",
+                  "virtualNetworks": "2015-06-15",
+                  "publicIPAddresses": "2015-06-15",
+                  "networkInterfaces": "2015-06-15",
+                  "virtualMachines": "2015-06-15",
+                  "virtualMachineScaleSets": "2015-06-15",
+                  "deployments": "2015-01-01",
+                  "availabilitySets": "2016-03-30"
+
+            },
+            "vnet": {
+                "name": "cluster-net')]",
+                "address": "10.0.0.0/16",
+                "subnet": {
+                    "web": {
+                        "name": "[concat('subnet-', web]",
+                        "nsgName": "[concat('nsg-', web]",
+                        "addressRangePrefix": "10.0.0",
+                        "address": "10.0.0.0/24"
+                    },
+                    "app": {
+                        "name": "[concat('subnet-', app)]",
+                        "nsgName": "[concat('nsg-', app)]",
+                        "addressRangePrefix": "10.0.1",
+                        "address": "10.0.1.0/24"
+                    }
+                }
+            },
+            "vm": {
+                "vmStorageAccountContainerName": "vhds",
+                "images": {
+                    "standard": {
+                        "publisher": "OpenLogic",
+                        "offer": "CentOS",
+                        "sku": "7.2",
+                        "version": "latest"
+                    }
+                }
+            }
+        }
+    },
+    "resources": [
+      {   "name": "shared-resources",
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "[variables('commonSettings').constants.apiVersions.deployments]",
+          "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'shared-resources.json')]",
+                  "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                  "commonSettings": {
+                      "value": "[variables('commonSettings')]"
+                  }
+              }
+          }
+      }
+    ],
+    "outputs": {
+      "foo": {
+          "type": "string",
+          "value": "bar"
+      }
+    }
+}

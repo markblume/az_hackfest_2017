@@ -1,0 +1,960 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "extensions_init_commandToExecute": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "virtualMachines_oracle_se_name": {
+            "defaultValue": "oracle-se",
+            "type": "String"
+        },
+        "virtualMachineScaleSets_app_name": {
+            "defaultValue": "app",
+            "type": "String"
+        },
+        "virtualMachineScaleSets_solr_name": {
+            "defaultValue": "solr",
+            "type": "String"
+        },
+        "virtualMachineScaleSets_web_name": {
+            "defaultValue": "web",
+            "type": "String"
+        },
+        "loadBalancers_solr_name": {
+            "defaultValue": "solr",
+            "type": "String"
+        },
+        "loadBalancers_web_name": {
+            "defaultValue": "web",
+            "type": "String"
+        },
+        "networkInterfaces_oracle_se_eth0_name": {
+            "defaultValue": "oracle-se_eth0",
+            "type": "String"
+        },
+        "networkSecurityGroups_app_subnet_name": {
+            "defaultValue": "app_subnet",
+            "type": "String"
+        },
+        "networkSecurityGroups_dmz_subnet_name": {
+            "defaultValue": "dmz_subnet",
+            "type": "String"
+        },
+        "publicIPAddresses_oracle_se_name": {
+            "defaultValue": "oracle-se",
+            "type": "String"
+        },
+        "publicIPAddresses_web_name": {
+            "defaultValue": "web",
+            "type": "String"
+        },
+        "virtualNetworks_cluster_net_name": {
+            "defaultValue": "cluster_net",
+            "type": "String"
+        },
+        "storageAccounts_icmperftestbaseline_name": {
+            "defaultValue": "icmperftestbaseline",
+            "type": "String"
+        },
+        "storageAccounts_icmperftestbaselinep_name": {
+            "defaultValue": "icmperftestbaselinep",
+            "type": "String"
+        },
+        "extensions_init_name": {
+            "defaultValue": "oracle-se/init",
+            "type": "String"
+        },
+        "loadBalancers_solr_id": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/solr/frontendIPConfigurations/frontend",
+            "type": "String"
+        },
+        "loadBalancers_solr_id_1": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/solr/backendAddressPools/bepool",
+            "type": "String"
+        },
+        "loadBalancers_solr_id_2": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/solr/probes/tcpProbe1",
+            "type": "String"
+        },
+        "loadBalancers_web_id": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/frontendIPConfigurations/frontend",
+            "type": "String"
+        },
+        "loadBalancers_web_id_1": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/backendAddressPools/bepool",
+            "type": "String"
+        },
+        "loadBalancers_web_id_2": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/probes/tcpProbe1",
+            "type": "String"
+        },
+        "loadBalancers_web_id_3": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/frontendIPConfigurations/frontend",
+            "type": "String"
+        },
+        "loadBalancers_web_id_4": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/backendAddressPools/bepool",
+            "type": "String"
+        },
+        "loadBalancers_web_id_5": {
+            "defaultValue": "/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web/probes/tcpProbe2",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Compute/virtualMachines/oracle-se'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_oracle_se_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "northeurope",
+            "tags": {
+                "tier": "service",
+                "oracle-server": "se"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS3_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "OpenLogic",
+                        "offer": "CentOS",
+                        "sku": "7.3",
+                        "version": "7.3.20161221"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "os",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('http', '://', parameters('storageAccounts_icmperftestbaselinep_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_oracle_se_name'),'-os.vhd'))]"
+                        },
+                        "caching": "ReadOnly",
+                        "diskSizeGB": 128
+                    },
+                    "dataDisks": [
+                        {
+                            "lun": 0,
+                            "name": "oraarchive",
+                            "createOption": "Empty",
+                            "vhd": {
+                                "uri": "[concat('http', '://', parameters('storageAccounts_icmperftestbaselinep_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_oracle_se_name'),'-lun0-oraarchive.vhd'))]"
+                            },
+                            "caching": "ReadOnly",
+                            "diskSizeGB": 512
+                        },
+                        {
+                            "lun": 1,
+                            "name": "oracle",
+                            "createOption": "Empty",
+                            "vhd": {
+                                "uri": "[concat('http', '://', parameters('storageAccounts_icmperftestbaselinep_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_oracle_se_name'),'-lun1-oracle.vhd'))]"
+                            },
+                            "caching": "None",
+                            "diskSizeGB": 128
+                        },
+                        {
+                            "lun": 2,
+                            "name": "oradata",
+                            "createOption": "Empty",
+                            "vhd": {
+                                "uri": "[concat('http', '://', parameters('storageAccounts_icmperftestbaselinep_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_oracle_se_name'),'-lun2-oradata.vhd'))]"
+                            },
+                            "caching": "None",
+                            "diskSizeGB": 512
+                        },
+                        {
+                            "lun": 3,
+                            "name": "orabackup",
+                            "createOption": "Empty",
+                            "vhd": {
+                                "uri": "[concat('http', '://', parameters('storageAccounts_icmperftestbaselinep_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_oracle_se_name'),'-lun3-orabackup.vhd'))]"
+                            },
+                            "caching": "None",
+                            "diskSizeGB": 128
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_oracle_se_name')]",
+                    "adminUsername": "centos",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/centos/.ssh/authorized_keys",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0SPidZyKXF5RkZNxYwRO6GFG4Ku8CnZ0UfsVFY62dDbOtrNaCelzBmk5WFXgEfO0wCky9V+hNK+oqAibghI8YW9yvHunI119wKGMCYF2PCXvXRYYSgfsMNmVryrY13VhLJafcPLC3KFq+W7kowzfBFogE+aGA78ZqfecB8bvk8KpSj7jzE8xfgZvF2WJf5MP3gaqkbLd63flUXdyPiCMd4bkpFO27uh2zpyGdwm4ID8cbnazMzxCBy0U7tVmwqsyTWMIB5Od7kq6x4bXt2RyqCCvbxWwgLQPJO20eWtmsggIAcvHK/BPM/hwOptN8GDA4i/nfsIUYYCC91RzyxhSd dummy@invalid"
+                                }
+                            ]
+                        }
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_oracle_se_eth0_name'))]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_icmperftestbaselinep_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_oracle_se_eth0_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Compute/virtualMachineScaleSets/app'.",
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "sku": {
+                "name": "Standard_D3_v2",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "name": "[parameters('virtualMachineScaleSets_app_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "northeurope",
+            "tags": {
+                "tier": "app"
+            },
+            "properties": {
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Automatic"
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('virtualMachineScaleSets_app_name')]",
+                        "adminUsername": "centos",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": true,
+                            "ssh": {
+                                "publicKeys": [
+                                    {
+                                        "path": "/home/centos/.ssh/authorized_keys",
+                                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0SPidZyKXF5RkZNxYwRO6GFG4Ku8CnZ0UfsVFY62dDbOtrNaCelzBmk5WFXgEfO0wCky9V+hNK+oqAibghI8YW9yvHunI119wKGMCYF2PCXvXRYYSgfsMNmVryrY13VhLJafcPLC3KFq+W7kowzfBFogE+aGA78ZqfecB8bvk8KpSj7jzE8xfgZvF2WJf5MP3gaqkbLd63flUXdyPiCMd4bkpFO27uh2zpyGdwm4ID8cbnazMzxCBy0U7tVmwqsyTWMIB5Od7kq6x4bXt2RyqCCvbxWwgLQPJO20eWtmsggIAcvHK/BPM/hwOptN8GDA4i/nfsIUYYCC91RzyxhSd dummy@invalid"
+                                    }
+                                ]
+                            }
+                        },
+                        "secrets": []
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "vhdContainers": [
+                                "https://icmperftestbaseline.blob.core.windows.net/vmss-app"
+                            ],
+                            "name": "vmssosdisk",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite"
+                        },
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "7.3",
+                            "version": "7.3.20161221"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "eth0",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "ip1",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), concat('/subnets/', parameters('virtualMachineScaleSets_app_name'),'_subnet'))]"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "properties": {
+                                    "publisher": "Microsoft.OSTCExtensions",
+                                    "type": "CustomScriptForLinux",
+                                    "typeHandlerVersion": "1.5",
+                                    "autoUpgradeMinorVersion": false,
+                                    "settings": {
+                                        "commandToExecute": "/bin/bash -c 'echo c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEY0p0NkR1LzdwRy9uYVJNaFJjMFJDbWQ3L3RLalVMZXp0a3dFSDFGSGJ1ekhMUkxYL3VvbXI5WGQyVjgzNHNwamw5bk56VU12dlkvbzRwN2V6VW5tcXY3ZlprNy9DWnk3ZE8yZWVVelZKNTZaelZJQlhCMVk5cm9MR3ZVdXMzdmVkRnVwbi8xazllRlVrVkc2QnVpMC9tM1RKcmROTklzdWZGR3NvS0NWL29YbE4vbTV1ZFBaa240YVlZV3RJRVJPNGJFSGtrMGFjZS8ySnEzeWM0UG5UOHJwSVg3QnRrSmk4NTN2N21SakJ1dk4xWEVWWDFobVZqU2lmZDd5UjdTb0RtNmtlWkZyRUNaSy9QbndJNHZFUjlnMEJZT3Z5b3QxVEtDL0tWM0RKNGpvMzgwc1hQU2RtcUNUNmtEb1FLRWgxa042cFpKYW90Y2ZDRmo2RjJxV1ggdmFncmFudEBjb250cm9saG9zdA== | base64 -d > /home/centos/.ssh/authorized_keys'"
+                                    }
+                                },
+                                "name": "CustomScriptExtensionVMSS"
+                            }
+                        ]
+                    }
+                },
+                "overprovision": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Compute/virtualMachineScaleSets/solr'.",
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "sku": {
+                "name": "Standard_D1_v2",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "name": "[parameters('virtualMachineScaleSets_solr_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "northeurope",
+            "tags": {
+                "tier": "solr"
+            },
+            "properties": {
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Automatic"
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('virtualMachineScaleSets_solr_name')]",
+                        "adminUsername": "centos",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": true,
+                            "ssh": {
+                                "publicKeys": [
+                                    {
+                                        "path": "/home/centos/.ssh/authorized_keys",
+                                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0SPidZyKXF5RkZNxYwRO6GFG4Ku8CnZ0UfsVFY62dDbOtrNaCelzBmk5WFXgEfO0wCky9V+hNK+oqAibghI8YW9yvHunI119wKGMCYF2PCXvXRYYSgfsMNmVryrY13VhLJafcPLC3KFq+W7kowzfBFogE+aGA78ZqfecB8bvk8KpSj7jzE8xfgZvF2WJf5MP3gaqkbLd63flUXdyPiCMd4bkpFO27uh2zpyGdwm4ID8cbnazMzxCBy0U7tVmwqsyTWMIB5Od7kq6x4bXt2RyqCCvbxWwgLQPJO20eWtmsggIAcvHK/BPM/hwOptN8GDA4i/nfsIUYYCC91RzyxhSd dummy@invalid"
+                                    }
+                                ]
+                            }
+                        },
+                        "secrets": []
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "vhdContainers": [
+                                "https://icmperftestbaseline.blob.core.windows.net/vmss-solr"
+                            ],
+                            "name": "vmssosdisk",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite"
+                        },
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "7.3",
+                            "version": "7.3.20161221"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "eth0",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "ip1",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), '/subnets/app_subnet')]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_solr_name')), '/backendAddressPools/bepool')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "properties": {
+                                    "publisher": "Microsoft.OSTCExtensions",
+                                    "type": "CustomScriptForLinux",
+                                    "typeHandlerVersion": "1.5",
+                                    "autoUpgradeMinorVersion": false,
+                                    "settings": {
+                                        "commandToExecute": "/bin/bash -c 'echo c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEY0p0NkR1LzdwRy9uYVJNaFJjMFJDbWQ3L3RLalVMZXp0a3dFSDFGSGJ1ekhMUkxYL3VvbXI5WGQyVjgzNHNwamw5bk56VU12dlkvbzRwN2V6VW5tcXY3ZlprNy9DWnk3ZE8yZWVVelZKNTZaelZJQlhCMVk5cm9MR3ZVdXMzdmVkRnVwbi8xazllRlVrVkc2QnVpMC9tM1RKcmROTklzdWZGR3NvS0NWL29YbE4vbTV1ZFBaa240YVlZV3RJRVJPNGJFSGtrMGFjZS8ySnEzeWM0UG5UOHJwSVg3QnRrSmk4NTN2N21SakJ1dk4xWEVWWDFobVZqU2lmZDd5UjdTb0RtNmtlWkZyRUNaSy9QbndJNHZFUjlnMEJZT3Z5b3QxVEtDL0tWM0RKNGpvMzgwc1hQU2RtcUNUNmtEb1FLRWgxa042cFpKYW90Y2ZDRmo2RjJxV1ggdmFncmFudEBjb250cm9saG9zdA== | base64 -d > /home/centos/.ssh/authorized_keys'"
+                                    }
+                                },
+                                "name": "CustomScriptExtensionVMSS"
+                            }
+                        ]
+                    }
+                },
+                "overprovision": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]",
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_solr_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Compute/virtualMachineScaleSets/web'.",
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "sku": {
+                "name": "Standard_A3",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "name": "[parameters('virtualMachineScaleSets_web_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "northeurope",
+            "tags": {
+                "tier": "web"
+            },
+            "properties": {
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Automatic"
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('virtualMachineScaleSets_web_name')]",
+                        "adminUsername": "centos",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": true,
+                            "ssh": {
+                                "publicKeys": [
+                                    {
+                                        "path": "/home/centos/.ssh/authorized_keys",
+                                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0SPidZyKXF5RkZNxYwRO6GFG4Ku8CnZ0UfsVFY62dDbOtrNaCelzBmk5WFXgEfO0wCky9V+hNK+oqAibghI8YW9yvHunI119wKGMCYF2PCXvXRYYSgfsMNmVryrY13VhLJafcPLC3KFq+W7kowzfBFogE+aGA78ZqfecB8bvk8KpSj7jzE8xfgZvF2WJf5MP3gaqkbLd63flUXdyPiCMd4bkpFO27uh2zpyGdwm4ID8cbnazMzxCBy0U7tVmwqsyTWMIB5Od7kq6x4bXt2RyqCCvbxWwgLQPJO20eWtmsggIAcvHK/BPM/hwOptN8GDA4i/nfsIUYYCC91RzyxhSd dummy@invalid"
+                                    }
+                                ]
+                            }
+                        },
+                        "secrets": []
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "vhdContainers": [
+                                "https://icmperftestbaseline.blob.core.windows.net/vmss-web"
+                            ],
+                            "name": "vmssosdisk",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite"
+                        },
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "7.3",
+                            "version": "7.3.20161221"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "eth0",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "ip1",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), '/subnets/dmz_subnet')]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_web_name')), '/backendAddressPools/bepool')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "properties": {
+                                    "publisher": "Microsoft.OSTCExtensions",
+                                    "type": "CustomScriptForLinux",
+                                    "typeHandlerVersion": "1.5",
+                                    "autoUpgradeMinorVersion": false,
+                                    "settings": {
+                                        "commandToExecute": "/bin/bash -c 'echo c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEY0p0NkR1LzdwRy9uYVJNaFJjMFJDbWQ3L3RLalVMZXp0a3dFSDFGSGJ1ekhMUkxYL3VvbXI5WGQyVjgzNHNwamw5bk56VU12dlkvbzRwN2V6VW5tcXY3ZlprNy9DWnk3ZE8yZWVVelZKNTZaelZJQlhCMVk5cm9MR3ZVdXMzdmVkRnVwbi8xazllRlVrVkc2QnVpMC9tM1RKcmROTklzdWZGR3NvS0NWL29YbE4vbTV1ZFBaa240YVlZV3RJRVJPNGJFSGtrMGFjZS8ySnEzeWM0UG5UOHJwSVg3QnRrSmk4NTN2N21SakJ1dk4xWEVWWDFobVZqU2lmZDd5UjdTb0RtNmtlWkZyRUNaSy9QbndJNHZFUjlnMEJZT3Z5b3QxVEtDL0tWM0RKNGpvMzgwc1hQU2RtcUNUNmtEb1FLRWgxa042cFpKYW90Y2ZDRmo2RjJxV1ggdmFncmFudEBjb250cm9saG9zdA== | base64 -d > /home/centos/.ssh/authorized_keys'"
+                                    }
+                                },
+                                "name": "CustomScriptExtensionVMSS"
+                            }
+                        ]
+                    }
+                },
+                "overprovision": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]",
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_web_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/solr'.",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[parameters('loadBalancers_solr_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "frontend",
+                        "properties": {
+                            "privateIPAddress": "10.10.11.100",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), '/subnets/app_subnet')]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "bepool"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "LBRule1",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[parameters('loadBalancers_solr_id')]"
+                            },
+                            "frontendPort": 10080,
+                            "backendPort": 10080,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "protocol": "Tcp",
+                            "loadDistribution": "Default",
+                            "backendAddressPool": {
+                                "id": "[parameters('loadBalancers_solr_id_1')]"
+                            },
+                            "probe": {
+                                "id": "[parameters('loadBalancers_solr_id_2')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "tcpProbe1",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 10080,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "inboundNatRules": [],
+                "outboundNatRules": [],
+                "inboundNatPools": []
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/loadBalancers/web'.",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[parameters('loadBalancers_web_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "frontend",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_web_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "bepool"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "LBRule1",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[parameters('loadBalancers_web_id')]"
+                            },
+                            "frontendPort": 80,
+                            "backendPort": 8080,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "protocol": "Tcp",
+                            "loadDistribution": "Default",
+                            "backendAddressPool": {
+                                "id": "[parameters('loadBalancers_web_id_1')]"
+                            },
+                            "probe": {
+                                "id": "[parameters('loadBalancers_web_id_2')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "LBRule2",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[parameters('loadBalancers_web_id_3')]"
+                            },
+                            "frontendPort": 443,
+                            "backendPort": 8443,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "protocol": "Tcp",
+                            "loadDistribution": "Default",
+                            "backendAddressPool": {
+                                "id": "[parameters('loadBalancers_web_id_4')]"
+                            },
+                            "probe": {
+                                "id": "[parameters('loadBalancers_web_id_5')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "tcpProbe1",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 8080,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    },
+                    {
+                        "name": "tcpProbe2",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 8443,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "inboundNatRules": [],
+                "outboundNatRules": [],
+                "inboundNatPools": []
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_web_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/networkInterfaces/oracle-se_eth0'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_oracle_se_eth0_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.10.11.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_oracle_se_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), '/subnets/app_subnet')]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_oracle_se_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/networkSecurityGroups/app_subnet'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_app_subnet_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSSHJumpFromISH",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "195.110.61.246",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/networkSecurityGroups/dmz_subnet'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_dmz_subnet_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "tags": {},
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowHTTPLBInbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8080",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPSLBInbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSSHInboundFromInternal",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "10.10.11.0/24",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyInternalTCPInbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 900,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyInternalUDPInbound",
+                        "properties": {
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 901,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowInternalICMPInbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 902,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyInternalOutbound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "10.0.0.0/8",
+                            "access": "Deny",
+                            "priority": 900,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowICMOutbound",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "10054",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "10.10.11.0/24",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/publicIPAddresses/oracle-se'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIPAddresses_oracle_se_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "icm-perf-test-baseline-jump"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/publicIPAddresses/web'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIPAddresses_web_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "icm-perf-test-baseline"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Network/virtualNetworks/cluster_net'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_cluster_net_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.10.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "dmz_subnet",
+                        "properties": {
+                            "addressPrefix": "10.10.10.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_dmz_subnet_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "app_subnet",
+                        "properties": {
+                            "addressPrefix": "10.10.11.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_app_subnet_name'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_dmz_subnet_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_app_subnet_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Storage/storageAccounts/icmperftestbaseline'.",
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('storageAccounts_icmperftestbaseline_name')]",
+            "apiVersion": "2016-01-01",
+            "location": "northeurope",
+            "tags": {},
+            "properties": {},
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Storage/storageAccounts/icmperftestbaselinep'.",
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Premium_LRS",
+                "tier": "Premium"
+            },
+            "kind": "Storage",
+            "name": "[parameters('storageAccounts_icmperftestbaselinep_name')]",
+            "apiVersion": "2016-01-01",
+            "location": "northeurope",
+            "tags": {},
+            "properties": {},
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/47fb4ba1-5c1c-4058-8e56-9c60042de65d/resourceGroups/icm-perf-test-baseline/providers/Microsoft.Compute/virtualMachines/oracle-se/extensions/init'.",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[parameters('extensions_init_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "northeurope",
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.5",
+                "autoUpgradeMinorVersion": false,
+                "settings": {},
+                "protectedSettings": {
+                    "commandToExecute": "[parameters('extensions_init_commandToExecute')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_oracle_se_name'))]"
+            ]
+        }
+    ]
+}
