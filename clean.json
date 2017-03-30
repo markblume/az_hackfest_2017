@@ -35,6 +35,11 @@
 					"virtualNetworks": "2016-09-01",
 					"networkSecurityGroups": "2016-09-01",
 					"loadBalancers": "2016-09-01",
+					"networkInterfaces": "2016-09-01",
+
+
+
+
 
                     "availabilitySets": "2016-04-30-preview",
 					"virtualMachineScaleSets": "2016-04-30-preview"
@@ -87,7 +92,7 @@
 					}
 				}
 			},
-            "vnet": {  
+            "vnet": {
                 "name": "[concat('vnet-', parameters('tenantName'))]",
                 "address": "10.0.0.0/16",
                 "subnet": {
@@ -372,6 +377,31 @@
 					}
 				}
 			}
-		}
+		},
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('nic-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkInterfaces]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('nic-ipcfg-', 'oracle')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.app.addressRangePrefix, '.250')]",
+                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+
+
 	]
 }
