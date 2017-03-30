@@ -294,6 +294,10 @@
 			"type": "Microsoft.Compute/virtualMachineScaleSets",
 			"name": "[concat('vmss-web-', parameters('tenantName'))]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
+                "[concat('Microsoft.Network/loadBalancers/', concat('loadbalancer-', 'web'))]"
+            ],
             "location": "[resourceGroup().location]",
 			"sku": {
 				"name": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.web]",
