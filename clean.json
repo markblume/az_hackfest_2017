@@ -1,0 +1,543 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+	"parameters": {
+		"tenantName": {
+            "type": "string",
+            "defaultValue": "intershop"
+        }, 
+		"deploymentSku": {
+            "type": "string",
+            "defaultValue": "small",
+            "allowedValues": [ "small", "medium", "large" ]
+		},
+		"adminUsername": {
+            "type": "string",
+            "defaultValue": "chgeuer",
+            "metadata": { "description": "Admin user name for the Virtual Machines." }
+        },
+        "adminSecureShellKey": {
+            "type": "string",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAk/ViUPrGp7KoJLuN2PgofgMyw7SN9zfLYFDDR0TRYa8cOvJlE8NdZYt6Oqa4aL/fslKr9bmlMCdawhZRL7sHccIIS0I0zG7iD15rQL3/Y5aZOf3ML+bebpSj+SE5OeHT9iobgsYpK8gq72d8tmZZAfKhx6fRJsgC2j2xXH/GveoZ5GkHnhJUYuYPmNjEb/PK7LT43XuP+E9Rderr3LPUTuBeGVW9do0HS7X8I2uTn0+BqgkZLOO4FCnSXxh1u6fuD++ZgOZVmB6Q1xEdHSA7LLnPkjDZqbWezLIh5cSdNPUW2JG7tMxQTAZzVoNMb6vAVsfslB16rqZQ21EdIq+0pw== chgeuer-dcos-1",
+            "metadata": { "description": "Admin SSH key for the Virtual Machines." }
+        }
+	},
+	"variables": {
+		"commonSettings": {
+            "deploymentSku": "[parameters('deploymentSku')]",
+            "tenantName": "[parameters('tenantName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminSecureShellKey": "[parameters('adminSecureShellKey')]",
+            "baseUrl": "[concat('https://raw.githubusercontent.com/chgeuer/az_hackfest_2017/master/')]",
+            "constants": {
+                "apiVersions": {
+					"publicIPAddresses": "2016-09-01",
+					"virtualNetworks": "2016-09-01",
+					"networkSecurityGroups": "2016-09-01",
+					"loadBalancers": "2016-09-01",
+					"networkInterfaces": "2016-09-01",
+
+
+
+
+                    "availabilitySets": "2016-04-30-preview",
+					"virtualMachines": "2016-04-30-preview",
+					"virtualMachineScaleSets": "2016-04-30-preview",
+                    "disks": "2016-04-30-preview"
+                }
+			},
+			"vmProfile": {
+				"publisher": "Canonical",
+				"offer": "UbuntuServer",
+				"sku": "16.04-LTS",
+				"version": "latest"
+            },
+			"sizes": { 
+				"small": {
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
+				},
+				"medium": { 
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
+				},
+				"large": { 
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
+				}
+			},
+            "vnet": {
+                "name": "[concat('vnet-', parameters('tenantName'))]",
+                "address": "10.0.0.0/16",
+                "subnet": {
+                    "web": {
+                        "name": "[concat('subnet-web-', parameters('tenantName'))]", 
+                        "nsgName": "[concat('nsg-web-', parameters('tenantName'))]",
+                        "addressRangePrefix": "10.0.0",
+                        "address": "10.0.0.0/24"
+                    },
+                    "app": {
+                        "name": "[concat('subnet-app-', parameters('tenantName'))]", 
+                        "nsgName": "[concat('nsg-app-', parameters('tenantName'))]",
+                        "addressRangePrefix": "10.0.1",
+                        "address": "10.0.1.0/24"
+                    }
+                }
+            }
+		}
+	},
+	"resources": [
+ 		{
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat('publicip-', variables('commonSettings').tenantName)]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.publicIPAddresses]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 30,
+                "dnsSettings": {
+                    "domainNameLabel": "[concat('intershop4', variables('commonSettings').tenantName)]"
+                }
+            }
+        },
+		{
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('commonSettings').vnet.subnet.web.nsgName]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "http-in",
+                        "properties": {
+                            "priority": 100,
+                            "description": "Allow TCP/80 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "https-in",
+                        "properties": {
+                            "priority": 101,
+                            "description": "Allow TCP/443 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "destinationPortRange": "443"
+                        }
+                    },
+                    {
+                        "name": "ssh-in",
+                        "properties": {
+                            "priority": 102,
+                            "description": "Allow TCP/22 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "destinationPortRange": "22"
+                        }
+                    }
+                ]
+            }
+		},
+		{
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('commonSettings').vnet.subnet.app.nsgName]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "http-in",
+                        "properties": {
+                            "priority": 100,
+                            "description": "Allow TCP/80 Inbound (Web Server->App Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "within-app",
+                        "properties": {
+                            "priority": 101,
+                            "description": "Allow TCP/80 Inbound (Web Server->App Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "destinationPortRange": "*"
+                        }
+                    }
+                ]
+            }
+		},
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('commonSettings').vnet.name]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualNetworks]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.web.nsgName)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.app.nsgName)]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [ "[variables('commonSettings').vnet.address]" ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('commonSettings').vnet.subnet.web.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('commonSettings').vnet.subnet.web.nsgName)]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('commonSettings').vnet.subnet.app.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups',  variables('commonSettings').vnet.subnet.app.nsgName)]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[concat('loadbalancer-', 'web')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', concat('publicip-', variables('commonSettings').tenantName))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "webFrontendIPConfiguration",
+                        "properties": {
+                            "publicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat('publicip-', variables('commonSettings').tenantName))]" }
+                        }
+                    }
+                ],
+                "backendAddressPools": [ { "name": "webBackendAddressPool" } ],
+                "probes": [
+                    {
+                        "name": "httpProbe",
+                        "properties": {
+                            "port": 80,
+                            "protocol": "Http",
+							"requestPath": "/gesundheit.aspx",
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "loadBalancingRule-http",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/frontendIPConfigurations/', 'webFrontendIPConfiguration')]" },
+                            "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" },
+                            "probe": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/probes/', 'httpProbe')]" }
+                        }
+                    }
+                ],
+				"inboundNatPools": [
+					{
+						"name": "[concat('loadbalancer-', 'web', '-ssh-access')]",
+						"properties": {
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/frontendIPConfigurations/', 'webFrontendIPConfiguration')]" },
+							"protocol": "tcp",
+							"backendPort": 22,
+							"frontendPortRangeStart": 22, "frontendPortRangeEnd": 60
+						}
+					}
+				]
+            }
+        },
+		{
+			"type": "Microsoft.Compute/virtualMachineScaleSets",
+			"name": "[concat('vmss-web-', parameters('tenantName'))]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
+                "[concat('Microsoft.Network/loadBalancers/', concat('loadbalancer-', 'web'))]"
+            ],
+            "location": "[resourceGroup().location]",
+			"sku": {
+				"name": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.web]",
+				"capacity": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceCount.web]",
+				"tier": "Standard"
+			},
+			"properties": {
+				"overprovision": true,
+				"singlePlacementGroup": true,
+				"upgradePolicy": { "mode": "Manual" },
+				"virtualMachineProfile": {
+					"osProfile": {
+						"computerNamePrefix": "[concat('web')]",
+						"adminUsername": "[variables('commonSettings').adminUsername]",
+						"linuxConfiguration": {
+							"disablePasswordAuthentication": true,
+							"ssh": {
+								"publicKeys": [
+									{
+                                    	"path": "[concat('/home/', variables('commonSettings').adminUsername, '/.ssh/authorized_keys')]",
+                                    	"keyData": "[variables('commonSettings').adminSecureShellKey]"
+                                	}
+								]
+							}
+						}
+					},
+					"storageProfile": {
+						"imageReference": {
+							"offer": "[variables('commonSettings').vmProfile.offer]",
+							"publisher": "[variables('commonSettings').vmProfile.publisher]",
+							"sku": "[variables('commonSettings').vmProfile.sku]",
+							"version": "[variables('commonSettings').vmProfile.version]"
+						},
+						"osDisk": {
+							"createOption": "FromImage",
+							"caching": "ReadWrite",
+							"managedDisk": { "storageAccountType": "Standard_LRS" }
+						}
+					},
+					"networkProfile": {
+						"networkInterfaceConfigurations": [
+							{
+								"name": "[concat('nic-', 'web')]",
+								"properties": {
+									"primary": true,
+									"ipConfigurations": [
+										{
+											"name": "[concat('ipconfiguration-', 'web')]",
+											"properties": {
+												"subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.web.name)]" },
+												"loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" } ]
+											}
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			}
+		},
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('nic-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkInterfaces]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('nic-ipcfg-', 'oracle')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.app.addressRangePrefix, '.250')]",
+                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('osDisk-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "osType": "Linux",
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 128,
+                "creationData": {
+                    "createOption": "FromImage",
+                    "imageReference": {
+						"id": "[concat('/Subscriptions/', subscription().subscriptionId, '/Providers/Microsoft.Compute/Locations/',resourceGroup().location, '/Publishers/', variables('commonSettings').vmProfile.publisher, '/ArtifactTypes/VMImage/Offers/', variables('commonSettings').vmProfile.offer, '/Skus/', variables('commonSettings').vmProfile.sku, '/Versions/', variables('commonSettings').vmProfile.version)]"
+					}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS",
+                "diskSizeGB": 512,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 128,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 512,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS",
+                "diskSizeGB": 128,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat('virtualMachine-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachines]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', concat('nic-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('osDisk-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oradata'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'orabackup'))]"
+            ],
+            "properties": {
+                "hardwareProfile": { "vmSize": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.oracle]" },
+                "osProfile": {
+                    "computerName": "[concat('pg', copyIndex())]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "linuxConfiguration": { 
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [ 
+                                {
+                                    "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('adminSecureShellKey')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "storageProfile": {
+					"imageReference": {
+						"offer": "[variables('commonSettings').vmProfile.offer]",
+						"publisher": "[variables('commonSettings').vmProfile.publisher]",
+						"sku": "[variables('commonSettings').vmProfile.sku]",
+						"version": "[variables('commonSettings').vmProfile.version]"
+					},
+                   "osDisk": {
+                        "name": "[concat('osDisk-', 'oracle')]",
+                        "caching": "ReadWrite", 
+						"createOption": "FromImage"
+                    }, 
+					"dataDisks": [
+						{
+							"lun": 0,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]" }
+						},
+						{
+							"lun": 1,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oracle'))]" }
+						},
+						{
+							"lun": 2,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oradata'))]" }
+						},
+						{
+							"lun": 3,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'orabackup'))]" }
+						}
+					]
+                },
+                "networkProfile": { 
+                    "networkInterfaces": [ 
+                        { 
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-', 'oracle'))]" 
+                        } 
+                    ] 
+                }
+            }
+        }
+	]
+}
