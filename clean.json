@@ -317,7 +317,6 @@
 							"version": "[variables('commonSettings').vmProfile.version]"
 						},
 						"osDisk": {
-							"name": "[concat('osDisk-', 'web')]",
 							"createOption": "FromImage",
 							"caching": "ReadWrite",
 							"managedDisk": { "storageAccountType": "Standard_LRS" }
