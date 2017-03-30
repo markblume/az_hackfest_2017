@@ -31,40 +31,69 @@
             "baseUrl": "[concat('https://raw.githubusercontent.com/chgeuer/az_hackfest_2017/master/')]",
             "constants": {
                 "apiVersions": {
-                    "availabilitySets": "2016-04-30-preview",
 					"publicIPAddresses": "2016-09-01",
 					"virtualNetworks": "2016-09-01",
 					"networkSecurityGroups": "2016-09-01",
+					"loadBalancers": "2016-09-01",
+
+                    "availabilitySets": "2016-04-30-preview",
 					"virtualMachineScaleSets": "2016-04-30-preview"
                 }
+			},
+			"vmProfile": {
+				"publisher": "Canonical",
+				"offer": "UbuntuServer",
+				"sku": "16.04-LTS",
+				"version": "latest"
             },
-			"vmSizes": {
-				"small": { 
-					"web": "Standard_DS1_v2", 
-					"app": "Standard_DS1_v2", 
-					"solr": "Standard_DS1_v2", 
-					"oracle": "Standard_DS1_v2"  
+			"sizes": { 
+				"small": {
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
 				},
 				"medium": { 
-					"web": "Standard_DS1_v2", 
-					"app": "Standard_DS1_v2", 
-					"solr": "Standard_DS1_v2", 
-					"oracle": "Standard_DS1_v2"  
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
 				},
 				"large": { 
-					"web": "Standard_DS1_v2", 
-					"app": "Standard_DS1_v2", 
-					"solr": "Standard_DS1_v2", 
-					"oracle": "Standard_DS1_v2"  
+					"instanceTypes": {
+						"web": "Standard_DS1_v2", 
+						"app": "Standard_DS1_v2", 
+						"solr": "Standard_DS1_v2", 
+						"oracle": "Standard_DS1_v2"
+					},
+					"instanceCount": {
+						"web": 3, 
+						"app": 3, 
+						"solr": 3
+					}
 				}
 			},
             "vnet": {  
                 "name": "[concat('vnet-', parameters('tenantName'))]",
                 "address": "10.0.0.0/16",
                 "subnet": {
-                    "dmz": {
-                        "name": "[concat('subnet-dmz-', parameters('tenantName'))]", 
-                        "nsgName": "[concat('nsg-dmz-', parameters('tenantName'))]",
+                    "web": {
+                        "name": "[concat('subnet-web-', parameters('tenantName'))]", 
+                        "nsgName": "[concat('nsg-web-', parameters('tenantName'))]",
                         "addressRangePrefix": "10.0.0",
                         "address": "10.0.0.0/24"
                     },
@@ -94,7 +123,7 @@
         },
 		{
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('commonSettings').vnet.subnet.dmz.nsgName]",
+            "name": "[variables('commonSettings').vnet.subnet.web.nsgName]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -109,7 +138,7 @@
                             "protocol": "Tcp",
                             "sourceAddressPrefix": "Internet",
                             "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
                             "destinationPortRange": "80"
                         }
                     },
@@ -123,7 +152,7 @@
                             "protocol": "Tcp",
                             "sourceAddressPrefix": "Internet",
                             "sourcePortRange": "*",
-                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
                             "destinationPortRange": "443"
                         }
                     }
@@ -145,7 +174,7 @@
                             "access": "Allow",
                             "direction": "Inbound",
                             "protocol": "Tcp",
-                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
                             "destinationPortRange": "80"
@@ -174,7 +203,7 @@
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualNetworks]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.dmz.nsgName)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.web.nsgName)]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.app.nsgName)]"
             ],
             "properties": {
@@ -183,11 +212,11 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('commonSettings').vnet.subnet.dmz.name]",
+                        "name": "[variables('commonSettings').vnet.subnet.web.name]",
                         "properties": {
-                            "addressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "addressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('commonSettings').vnet.subnet.dmz.nsgName)]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('commonSettings').vnet.subnet.web.nsgName)]"
                             }
                         }
                     },
@@ -203,25 +232,71 @@
                 ]
             }
         },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[concat('loadbalancer-', 'web')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', concat('publicip-', variables('commonSettings').tenantName))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "webFrontendIPConfiguration",
+                        "properties": {
+                            "publicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat('publicip-', variables('commonSettings').tenantName))]" }
+                        }
+                    }
+                ],
+                "backendAddressPools": [ { "name": "webBackendAddressPool" } ],
+                "probes": [
+                    {
+                        "name": "httpProbe",
+                        "properties": {
+                            "port": 80,
+                            "protocol": "Http",
+							"requestPath": "/gesundheit.aspx",
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "loadBalancingRule-http",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 2,
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/frontendIPConfigurations/', 'webFrontendIPConfiguration')]" },
+                            "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" },
+                            "probe": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/probes/', 'httpProbe')]" }
+                        }
+                    }
+                ]
+            }
+        },
 		{
 			"type": "Microsoft.Compute/virtualMachineScaleSets",
 			"name": "[concat('vmss-web-', parameters('tenantName'))]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
             "location": "[resourceGroup().location]",
 			"sku": {
-				"name": "[variables('commonSettings').vmSizes[parameters('deploymentSku')].web]",
-				"tier": "string",
-				"capacity": "integer"
+				"name": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.web]",
+				"capacity": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceCount.web]",
+				"tier": "Standard"
 			},
 			"properties": {
 				"overprovision": true,
 				"singlePlacementGroup": true,
-				"upgradePolicy": { "mode": "Automatic" },
+				"upgradePolicy": { "mode": "Manual" },
 				"virtualMachineProfile": {
 					"osProfile": {
-						"computerNamePrefix": "web",
-						"adminUsername": "string",
-						"adminPassword": "string",
+						"computerNamePrefix": "[concat('web')]",
+						"adminUsername": "[variables('commonSettings').adminUsername]",
 						"linuxConfiguration": {
 							"disablePasswordAuthentication": true,
 							"ssh": {
@@ -235,73 +310,31 @@
 						}
 					},
 					"storageProfile": {
-						"imageReference": {
-							"id": "string",
-							"publisher": "string",
-							"offer": "string",
-							"sku": "string",
-							"version": "string"
-						},
+						"imageReference": "[variables('commonSettings').vmProfile",
 						"osDisk": {
-							"name": "string",
-							"caching": "string",
-							"createOption": "string",
-							"osType": "string",
-							"image": { "uri": "string" },
-							"vhdContainers": [ "string" ],
+							"name": "[concat('osDisk-', 'web')]",
+							"createOption": "FromImage",
+							"caching": "ReadWrite",
 							"managedDisk": { "storageAccountType": "string" }
 						}
 					},
 					"networkProfile": {
 						"networkInterfaceConfigurations": [
-						{
-							"id": "string",
-							"name": "string",
-							"properties": {
-							"primary": boolean,
-							"ipConfigurations": [
-								{
-								"id": "string",
-								"name": "string",
+							{
+								"name": "[concat('nic-', 'web')]",
 								"properties": {
-									"subnet": {
-									"id": "string"
-									},
-									"applicationGatewayBackendAddressPools": [
-									{
-										"id": "string"
-									}
-									],
-									"loadBalancerBackendAddressPools": [
-									{
-										"id": "string"
-									}
-									],
-									"loadBalancerInboundNatPools": [
-									{
-										"id": "string"
-									}
+									"primary": true,
+									"ipConfigurations": [
+										{
+											"name": "string",
+											"properties": {
+												"subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.web.name)]" },
+												"loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" } ]
+											}
+										}
 									]
 								}
-								}
-							]
 							}
-						}
-						]
-					},
-					"extensionProfile": {
-						"extensions": [
-						{
-							"name": "string",
-							"properties": {
-							"publisher": "string",
-							"type": "string",
-							"typeHandlerVersion": "string",
-							"autoUpgradeMinorVersion": boolean,
-							"settings": {},
-							"protectedSettings": {}
-							}
-						}
 						]
 					}
 				}
