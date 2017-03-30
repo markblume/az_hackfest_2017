@@ -15,22 +15,23 @@
                 "apiVersions": {
                     "availabilitySets": "2016-04-30-preview",
 					"publicIPAddresses": "2016-09-01",
+					"virtualNetworks": "2016-09-01",
 					"networkSecurityGroups": "2016-09-01"
                 }
             },
             "vnet": {  
-                "name": "[concat(parameters('tenantName'),'-vnet')]",
+                "name": "[concat('vnet-', parameters('tenantName'))]",
                 "address": "10.0.0.0/16",
                 "subnet": {
                     "dmz": {
-                        "name": "subnet-dmz", 
-                        "nsgName": "nsg-dmz",
+                        "name": "[concat('subnet-dmz-', parameters('tenantName'))]", 
+                        "nsgName": "[concat('nsg-dmz-', parameters('tenantName'))]",
                         "addressRangePrefix": "10.0.0",
                         "address": "10.0.0.0/24"
                     },
                     "app": {
-                        "name": "subnet-app",
-                        "nsgName": "nsg-app",
+                        "name": "[concat('subnet-app-', parameters('tenantName'))]", 
+                        "nsgName": "[concat('nsg-app-', parameters('tenantName'))]",
                         "addressRangePrefix": "10.0.1",
                         "address": "10.0.1.0/24"
                     }
@@ -54,7 +55,7 @@
         },
 		{
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[concat('nsg-dmz-', variables('commonSettings').tenantName)]",
+            "name": "[variables('commonSettings').vnet.subnet.dmz.nsgName]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -92,7 +93,7 @@
 		},
 		{
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[concat('nsg-app-', variables('commonSettings').tenantName)]",
+            "name": "[variables('commonSettings').vnet.subnet.app.nsgName]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -127,7 +128,42 @@
                     }
                 ]
             }
-		}
+		},
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('commonSettings').vnet.name]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualNetworks]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.dmz.nsgName)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('commonSettings').vnet.subnet.app.nsgName)]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [ "[variables('commonSettings').vnet.address]" ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('commonSettings').vnet.subnet.dmz.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('commonSettings').vnet.subnet.dmz.nsgName)]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('commonSettings').vnet.subnet.app.name]",
+                        "properties": {
+                            "addressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups',  variables('commonSettings').vnet.subnet.app.nsgName)]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
 	]
 }
 
