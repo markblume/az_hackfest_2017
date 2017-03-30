@@ -310,7 +310,12 @@
 						}
 					},
 					"storageProfile": {
-						"imageReference": "[variables('commonSettings').vmProfile",
+						"imageReference": {
+							"offer": "[variables('commonSettings').vmProfile.offer]",
+							"publisher": "[variables('commonSettings').vmProfile.publisher]",
+							"sku": "[variables('commonSettings').vmProfile.sku]",
+							"version": "[variables('commonSettings').vmProfile.version]"
+						},
 						"osDisk": {
 							"name": "[concat('osDisk-', 'web')]",
 							"createOption": "FromImage",
