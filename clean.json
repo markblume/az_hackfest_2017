@@ -5,20 +5,59 @@
 		"tenantName": {
             "type": "string",
             "defaultValue": "intershop"
+        }, 
+		"deploymentSku": {
+            "type": "string",
+            "defaultValue": "small",
+            "allowedValues": [ "small", "medium", "large" ]
+		},
+		"adminUsername": {
+            "type": "string",
+            "defaultValue": "chgeuer",
+            "metadata": { "description": "Admin user name for the Virtual Machines." }
+        },
+        "adminSecureShellKey": {
+            "type": "string",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAk/ViUPrGp7KoJLuN2PgofgMyw7SN9zfLYFDDR0TRYa8cOvJlE8NdZYt6Oqa4aL/fslKr9bmlMCdawhZRL7sHccIIS0I0zG7iD15rQL3/Y5aZOf3ML+bebpSj+SE5OeHT9iobgsYpK8gq72d8tmZZAfKhx6fRJsgC2j2xXH/GveoZ5GkHnhJUYuYPmNjEb/PK7LT43XuP+E9Rderr3LPUTuBeGVW9do0HS7X8I2uTn0+BqgkZLOO4FCnSXxh1u6fuD++ZgOZVmB6Q1xEdHSA7LLnPkjDZqbWezLIh5cSdNPUW2JG7tMxQTAZzVoNMb6vAVsfslB16rqZQ21EdIq+0pw== chgeuer-dcos-1",
+            "metadata": { "description": "Admin SSH key for the Virtual Machines." }
         }
 	},
 	"variables": {
 		"commonSettings": {
+            "deploymentSku": "[parameters('deploymentSku')]",
             "tenantName": "[parameters('tenantName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminSecureShellKey": "[parameters('adminSecureShellKey')]",
             "baseUrl": "[concat('https://raw.githubusercontent.com/chgeuer/az_hackfest_2017/master/')]",
             "constants": {
                 "apiVersions": {
                     "availabilitySets": "2016-04-30-preview",
 					"publicIPAddresses": "2016-09-01",
 					"virtualNetworks": "2016-09-01",
-					"networkSecurityGroups": "2016-09-01"
+					"networkSecurityGroups": "2016-09-01",
+					"virtualMachineScaleSets": "2016-04-30-preview"
                 }
             },
+			"vmSizes": {
+				"small": { 
+					"web": "Standard_DS1_v2", 
+					"app": "Standard_DS1_v2", 
+					"solr": "Standard_DS1_v2", 
+					"oracle": "Standard_DS1_v2"  
+				},
+				"medium": { 
+					"web": "Standard_DS1_v2", 
+					"app": "Standard_DS1_v2", 
+					"solr": "Standard_DS1_v2", 
+					"oracle": "Standard_DS1_v2"  
+				},
+				"large": { 
+					"web": "Standard_DS1_v2", 
+					"app": "Standard_DS1_v2", 
+					"solr": "Standard_DS1_v2", 
+					"oracle": "Standard_DS1_v2"  
+				}
+			},
             "vnet": {  
                 "name": "[concat('vnet-', parameters('tenantName'))]",
                 "address": "10.0.0.0/16",
@@ -163,7 +202,110 @@
                     }
                 ]
             }
-        }
+        },
+		{
+			"type": "Microsoft.Compute/virtualMachineScaleSets",
+			"name": "[concat('vmss-web-', parameters('tenantName'))]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
+            "location": "[resourceGroup().location]",
+			"sku": {
+				"name": "[variables('commonSettings').vmSizes[parameters('deploymentSku')].web]",
+				"tier": "string",
+				"capacity": "integer"
+			},
+			"properties": {
+				"overprovision": true,
+				"singlePlacementGroup": true,
+				"upgradePolicy": { "mode": "Automatic" },
+				"virtualMachineProfile": {
+					"osProfile": {
+						"computerNamePrefix": "web",
+						"adminUsername": "string",
+						"adminPassword": "string",
+						"linuxConfiguration": {
+							"disablePasswordAuthentication": true,
+							"ssh": {
+								"publicKeys": [
+									{
+                                    	"path": "[concat('/home/', variables('commonSettings').adminUsername, '/.ssh/authorized_keys')]",
+                                    	"keyData": "[variables('commonSettings').adminSecureShellKey]"
+                                	}
+								]
+							}
+						}
+					},
+					"storageProfile": {
+						"imageReference": {
+							"id": "string",
+							"publisher": "string",
+							"offer": "string",
+							"sku": "string",
+							"version": "string"
+						},
+						"osDisk": {
+							"name": "string",
+							"caching": "string",
+							"createOption": "string",
+							"osType": "string",
+							"image": { "uri": "string" },
+							"vhdContainers": [ "string" ],
+							"managedDisk": { "storageAccountType": "string" }
+						}
+					},
+					"networkProfile": {
+						"networkInterfaceConfigurations": [
+						{
+							"id": "string",
+							"name": "string",
+							"properties": {
+							"primary": boolean,
+							"ipConfigurations": [
+								{
+								"id": "string",
+								"name": "string",
+								"properties": {
+									"subnet": {
+									"id": "string"
+									},
+									"applicationGatewayBackendAddressPools": [
+									{
+										"id": "string"
+									}
+									],
+									"loadBalancerBackendAddressPools": [
+									{
+										"id": "string"
+									}
+									],
+									"loadBalancerInboundNatPools": [
+									{
+										"id": "string"
+									}
+									]
+								}
+								}
+							]
+							}
+						}
+						]
+					},
+					"extensionProfile": {
+						"extensions": [
+						{
+							"name": "string",
+							"properties": {
+							"publisher": "string",
+							"type": "string",
+							"typeHandlerVersion": "string",
+							"autoUpgradeMinorVersion": boolean,
+							"settings": {},
+							"protectedSettings": {}
+							}
+						}
+						]
+					}
+				}
+			}
+		}
 	]
 }
-
