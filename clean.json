@@ -782,7 +782,7 @@
                                         {
                                             "name": "[concat('ipconfiguration-', 'solr')]",
                                             "properties": {
-                                                "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.solr.name)]" },
+                                                "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" },
                                                 "loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'solr')), '/backendAddressPools/', 'solrBackendAddressPool')]" } ]
                                             }
                                         }
