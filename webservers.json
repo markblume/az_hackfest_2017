@@ -1,0 +1,118 @@
+{   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "commonSettings": { "type": "object" },
+      "vmType": {"type": "string", "defaultValue": "Standard_A1" },
+      "vmCount": {"type": "int",   "defaultValue": 2}
+    },
+
+    "variables": {
+    
+        "scaleSet": {
+          "vmType": "[parameters('vmType')]",
+          "vmName": "weberver",
+          "adminUsername": "centos",
+          "capacity": "[parameters('vmCount')]",
+          "name":  "vmss-webserver"
+        }
+    },
+
+    "resources": [
+      { "comments": "Webserver ScaleSet",
+           "type": "Microsoft.Compute/virtualMachineScaleSets",
+           "sku": {
+               "name": "[variables('scaleSet').vmType]",
+               "tier": "Standard",
+               "capacity": "[variables('scaleSet').capacity]"
+           },
+           "name": "[variables('scaleSet').name]",
+           "apiVersion": "[parameters('commonSettings').apiVersions.virtualMachineScaleSets]",
+           "location": "[resourceGroup().location]",
+           "tags": {
+               "tier": "web"
+           },
+           "properties": {
+               "singlePlacementGroup": true,
+               "upgradePolicy": {
+                   "mode": "Automatic"
+               },
+               "virtualMachineProfile": {
+                   "osProfile": {
+                       "computerNamePrefix": "[variables('scaleSet').vmName]",
+                       "adminUsername": "[variables('scaleSet').adminUsername]",
+                       "linuxConfiguration": {
+                           "disablePasswordAuthentication": true,
+                           "ssh": {
+                               "publicKeys": [
+                               ]
+                           }
+                       },
+                       "secrets": []
+                   },
+                   "storageProfile": {
+                       "osDisk": {
+                           "vhdContainers": [
+                               "https://icmperftestbaseline.blob.core.windows.net/vmss-web"
+                           ],
+                           "name": "vmssosdisk",
+                           "createOption": "FromImage",
+                           "caching": "ReadWrite"
+                       },
+                       "imageReference": {
+                           "publisher": "OpenLogic",
+                           "offer": "CentOS",
+                           "sku": "7.3",
+                           "version": "7.3.20161221"
+                       }
+                   },
+                   "networkProfile": {
+                       "networkInterfaceConfigurations": [
+                           {
+                               "name": "eth0",
+                               "properties": {
+                                   "primary": true,
+                                   "ipConfigurations": [
+                                       {
+                                           "name": "ip1",
+                                           "properties": {
+                                               "subnet": {
+                                                   "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name')), '/subnets/dmz_subnet')]"
+                                               },
+                                               "loadBalancerBackendAddressPools": [
+                                                   {
+                                                       "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_web_name')), '/backendAddressPools/bepool')]"
+                                                   }
+                                               ]
+                                           }
+                                       }
+                                   ]
+                               }
+                           }
+                       ]
+                   },
+                   "extensionProfile": {
+                       "extensions": [
+                           {
+                               "properties": {
+                                   "publisher": "Microsoft.OSTCExtensions",
+                                   "type": "CustomScriptForLinux",
+                                   "typeHandlerVersion": "1.5",
+                                   "autoUpgradeMinorVersion": false,
+                                   "settings": {
+                                       "commandToExecute": "/bin/bash -c 'echo c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEY0p0NkR1LzdwRy9uYVJNaFJjMFJDbWQ3L3RLalVMZXp0a3dFSDFGSGJ1ekhMUkxYL3VvbXI5WGQyVjgzNHNwamw5bk56VU12dlkvbzRwN2V6VW5tcXY3ZlprNy9DWnk3ZE8yZWVVelZKNTZaelZJQlhCMVk5cm9MR3ZVdXMzdmVkRnVwbi8xazllRlVrVkc2QnVpMC9tM1RKcmROTklzdWZGR3NvS0NWL29YbE4vbTV1ZFBaa240YVlZV3RJRVJPNGJFSGtrMGFjZS8ySnEzeWM0UG5UOHJwSVg3QnRrSmk4NTN2N21SakJ1dk4xWEVWWDFobVZqU2lmZDd5UjdTb0RtNmtlWkZyRUNaSy9QbndJNHZFUjlnMEJZT3Z5b3QxVEtDL0tWM0RKNGpvMzgwc1hQU2RtcUNUNmtEb1FLRWgxa042cFpKYW90Y2ZDRmo2RjJxV1ggdmFncmFudEBjb250cm9saG9zdA== | base64 -d > /home/centos/.ssh/authorized_keys'"
+                                   }
+                               },
+                               "name": "CustomScriptExtensionVMSS"
+                           }
+                       ]
+                   }
+               },
+               "overprovision": true
+           },
+           "dependsOn": [
+               "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cluster_net_name'))]",
+               "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_web_name'))]"
+           ]
+       }
+    ]
+}

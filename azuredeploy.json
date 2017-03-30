@@ -12,7 +12,7 @@
                 "small",
                 "medium"
             ],
-            "defaultValue": "medium"
+            "defaultValue": "small"
         }
     },
     "variables": {
@@ -85,13 +85,13 @@
               }
           }
       },
-      {   "name": "compute-resources",
+      {   "name": "webservers",
           "type": "Microsoft.Resources/deployments",
           "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
           "properties": {
               "mode": "Incremental",
               "templateLink": {
-                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'compute_', parameters('size'), '.json')]",
+                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'webservers_', parameters('size'), '.json')]",
                   "contentVersion": "1.0.0.0"
               },
               "parameters": {
