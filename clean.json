@@ -155,6 +155,20 @@
                             "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
                             "destinationPortRange": "443"
                         }
+                    },
+                    {
+                        "name": "ssh-in",
+                        "properties": {
+                            "priority": 102,
+                            "description": "Allow TCP/22 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.web.address]",
+                            "destinationPortRange": "22"
+                        }
                     }
                 ]
             }
