@@ -119,6 +119,7 @@
          {
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[concat('publicip-', variables('commonSettings').tenantName)]",
+            "tags": { "displayName": "PublicIP" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.publicIPAddresses]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -132,6 +133,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('commonSettings').vnet.subnet.web.nsgName]",
+            "tags": { "displayName": "NSG DMZ" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -184,6 +186,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('commonSettings').vnet.subnet.app.nsgName]",
+            "tags": { "displayName": "NSG APP" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -222,6 +225,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('commonSettings').vnet.name]",
+            "tags": { "displayName": "VNET" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualNetworks]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -257,6 +261,7 @@
         {
             "type": "Microsoft.Network/loadBalancers",
             "name": "[concat('loadbalancer-', 'web')]",
+            "tags": { "displayName": "Web NLB" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -328,6 +333,7 @@
         {
             "type": "Microsoft.Compute/virtualMachineScaleSets",
             "name": "[concat('vmss-web-', parameters('tenantName'))]",
+            "tags": { "displayName": "Web VMSS" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
@@ -397,6 +403,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat('nic-', 'oracle')]",
+            "tags": { "displayName": "Oracle NIC" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.networkInterfaces]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -418,6 +425,7 @@
         {
             "type": "Microsoft.Compute/disks",
             "name": "[concat('osDisk-', 'oracle')]",
+            "tags": { "displayName": "Oracle OSDisk" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -435,6 +443,7 @@
         {
             "type": "Microsoft.Compute/disks",
             "name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
+            "tags": { "displayName": "Oracle Datadisk Archive" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -446,6 +455,7 @@
         {
             "type": "Microsoft.Compute/disks",
             "name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
+            "tags": { "displayName": "Oracle Datadisk Oracle" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -457,6 +467,7 @@
         {
             "type": "Microsoft.Compute/disks",
             "name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
+            "tags": { "displayName": "Oracle Datadisk Data" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -468,6 +479,7 @@
         {
             "type": "Microsoft.Compute/disks",
             "name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
+            "tags": { "displayName": "Oracle Datadisk Backup" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -479,6 +491,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat('oracle')]",
+            "tags": { "displayName": "Oracle VM" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachines]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -561,6 +574,7 @@
         {
             "type": "Microsoft.Network/loadBalancers",
             "name": "[concat('loadbalancer-', 'app')]",
+            "tags": { "displayName": "App ILB" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -610,6 +624,7 @@
         {
             "type": "Microsoft.Compute/virtualMachineScaleSets",
             "name": "[concat('vmss-app-', parameters('tenantName'))]",
+            "tags": { "displayName": "App VMSS" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
@@ -679,6 +694,7 @@
         {
             "type": "Microsoft.Network/loadBalancers",
             "name": "[concat('loadbalancer-', 'solr')]",
+            "tags": { "displayName": "Solr ILB" },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -728,6 +744,7 @@
         {
             "type": "Microsoft.Compute/virtualMachineScaleSets",
             "name": "[concat('vmss-solr-', parameters('tenantName'))]",
+            "tags": { "displayName": "Solr VMSS " },
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
