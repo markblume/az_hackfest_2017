@@ -315,7 +315,7 @@
 							"name": "[concat('osDisk-', 'web')]",
 							"createOption": "FromImage",
 							"caching": "ReadWrite",
-							"managedDisk": { "storageAccountType": "Standard" }
+							"managedDisk": { "storageAccountType": "Standard_LRS" }
 						}
 					},
 					"networkProfile": {
@@ -326,7 +326,7 @@
 									"primary": true,
 									"ipConfigurations": [
 										{
-											"name": "string",
+											"name": "[concat('ipconfiguration-', 'web')]",
 											"properties": {
 												"subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.web.name)]" },
 												"loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'web')), '/backendAddressPools/', 'webBackendAddressPool')]" } ]
