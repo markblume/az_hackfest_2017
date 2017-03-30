@@ -98,17 +98,17 @@
                         "name": "[concat('subnet-web-', parameters('tenantName'))]", 
                         "nsgName": "[concat('nsg-web-', parameters('tenantName'))]",
                         "addressRangePrefix": "10.0.0",
-                        "address": "10.0.0.0/24"
+                        "address":            "10.0.0.0/24"
                     },
                     "app": {
                         "name": "[concat('subnet-app-', parameters('tenantName'))]", 
                         "nsgName": "[concat('nsg-app-', parameters('tenantName'))]",
-                        "addressRangePrefix": "10.0.1",
-                        "address": "10.0.1.0/24",
+                        "addressRangePrefix":   "10.0.1",
+                        "address":              "10.0.1.0/24",
 						"privateIp": {
-							"appLoadBalancerApp": "10.0.1.250",
+							"appLoadBalancer":  "10.0.1.250",
 							"solrLoadBalancer": "10.0.1.251",
-							"oracleVm": "10.0.1.252"
+							"oracleVm":         "10.0.1.252"
 						} 
                     }
                 }
@@ -523,7 +523,7 @@
                             "lun": 0,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
                             "createOption": "attach",
-							"caching": "Read",
+							"caching": "ReadOnly",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]" }
                         },
                         {
@@ -544,7 +544,7 @@
                             "lun": 3,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
                             "createOption": "attach",
-							"caching": "Read",
+							"caching": "ReadOnly",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'orabackup'))]" }
                         }
                     ]
