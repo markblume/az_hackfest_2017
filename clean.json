@@ -58,7 +58,7 @@
 						"web": "Standard_DS1_v2", 
 						"app": "Standard_DS1_v2", 
 						"solr": "Standard_DS1_v2", 
-						"oracle": "Standard_DS1_v2"
+						"oracle": "Standard_DS3_v2"
 					},
 					"instanceCount": {
 						"web": 3, 
@@ -71,7 +71,7 @@
 						"web": "Standard_DS1_v2", 
 						"app": "Standard_DS1_v2", 
 						"solr": "Standard_DS1_v2", 
-						"oracle": "Standard_DS1_v2"
+						"oracle": "Standard_DS3_v2"
 					},
 					"instanceCount": {
 						"web": 3, 
@@ -84,7 +84,7 @@
 						"web": "Standard_DS1_v2", 
 						"app": "Standard_DS1_v2", 
 						"solr": "Standard_DS1_v2", 
-						"oracle": "Standard_DS1_v2"
+						"oracle": "Standard_DS3_v2"
 					},
 					"instanceCount": {
 						"web": 3, 
