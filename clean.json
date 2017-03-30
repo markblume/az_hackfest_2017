@@ -41,6 +41,7 @@
 
 
                     "availabilitySets": "2016-04-30-preview",
+					"virtualMachines": "2016-04-30-preview",
 					"virtualMachineScaleSets": "2016-04-30-preview",
                     "disks": "2016-04-30-preview"
                 }
