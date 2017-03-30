@@ -463,7 +463,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[concat('virtualMachine-', 'oracle')]",
+            "name": "[concat('oracle')]",
             "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachines]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -477,7 +477,7 @@
             "properties": {
                 "hardwareProfile": { "vmSize": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.oracle]" },
                 "osProfile": {
-                    "computerName": "[concat('pg', copyIndex())]",
+                    "computerName": "[concat('oracle')]",
                     "adminUsername": "[parameters('adminUsername')]",
                     "linuxConfiguration": { 
                         "disablePasswordAuthentication": true,
