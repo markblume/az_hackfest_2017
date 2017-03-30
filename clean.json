@@ -1,0 +1,133 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+	"parameters": {
+		"tenantName": {
+            "type": "string",
+            "defaultValue": "intershop"
+        }
+	},
+	"variables": {
+		"commonSettings": {
+            "tenantName": "[parameters('tenantName')]",
+            "baseUrl": "[concat('https://raw.githubusercontent.com/chgeuer/az_hackfest_2017/master/')]",
+            "constants": {
+                "apiVersions": {
+                    "availabilitySets": "2016-04-30-preview",
+					"publicIPAddresses": "2016-09-01",
+					"networkSecurityGroups": "2016-09-01"
+                }
+            },
+            "vnet": {  
+                "name": "[concat(parameters('tenantName'),'-vnet')]",
+                "address": "10.0.0.0/16",
+                "subnet": {
+                    "dmz": {
+                        "name": "subnet-dmz", 
+                        "nsgName": "nsg-dmz",
+                        "addressRangePrefix": "10.0.0",
+                        "address": "10.0.0.0/24"
+                    },
+                    "app": {
+                        "name": "subnet-app",
+                        "nsgName": "nsg-app",
+                        "addressRangePrefix": "10.0.1",
+                        "address": "10.0.1.0/24"
+                    }
+                }
+            }
+		}
+	},
+	"resources": [
+ 		{
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat('publicip-', variables('commonSettings').tenantName)]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.publicIPAddresses]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 30,
+                "dnsSettings": {
+                    "domainNameLabel": "[concat('intershop4', variables('commonSettings').tenantName)]"
+                }
+            }
+        },
+		{
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat('nsg-dmz-', variables('commonSettings').tenantName)]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "http-in",
+                        "properties": {
+                            "priority": 100,
+                            "description": "Allow TCP/80 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "https-in",
+                        "properties": {
+                            "priority": 101,
+                            "description": "Allow TCP/443 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "destinationPortRange": "443"
+                        }
+                    }
+                ]
+            }
+		},
+		{
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[concat('nsg-app-', variables('commonSettings').tenantName)]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "http-in",
+                        "properties": {
+                            "priority": 100,
+                            "description": "Allow TCP/80 Inbound (Web Server->App Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.dmz.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "within-app",
+                        "properties": {
+                            "priority": 101,
+                            "description": "Allow TCP/80 Inbound (Web Server->App Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('commonSettings').vnet.subnet.app.address]",
+                            "destinationPortRange": "*"
+                        }
+                    }
+                ]
+            }
+		}
+	]
+}
+
