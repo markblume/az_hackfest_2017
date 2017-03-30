@@ -315,7 +315,7 @@
 							"name": "[concat('osDisk-', 'web')]",
 							"createOption": "FromImage",
 							"caching": "ReadWrite",
-							"managedDisk": { "storageAccountType": "string" }
+							"managedDisk": { "storageAccountType": "Standard" }
 						}
 					},
 					"networkProfile": {
