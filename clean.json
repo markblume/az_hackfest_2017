@@ -40,9 +40,9 @@
 
 
 
-
                     "availabilitySets": "2016-04-30-preview",
-					"virtualMachineScaleSets": "2016-04-30-preview"
+					"virtualMachineScaleSets": "2016-04-30-preview",
+                    "disks": "2016-04-30-preview"
                 }
 			},
 			"vmProfile": {
@@ -398,10 +398,145 @@
                     }
                 ]
             }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('osDisk-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "osType": "Linux",
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 128,
+                "creationData": {
+                    "createOption": "FromImage",
+                    "imageReference": {
+						"id": "[concat('/Subscriptions/', subscription().subscriptionId, '/Providers/Microsoft.Compute/Locations/',resourceGroup().location, '/Publishers/', variables('commonSettings').vmProfile.publisher, '/ArtifactTypes/VMImage/Offers/', variables('commonSettings').vmProfile.offer, '/Skus/', variables('commonSettings').vmProfile.sku, '/Versions/', variables('commonSettings').vmProfile.version)]"
+					}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS",
+                "diskSizeGB": 512,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 128,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Premium_LRS",
+                "diskSizeGB": 512,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.disks]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS",
+                "diskSizeGB": 128,
+                "creationData": { "createOption": "Empty" }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat('virtualMachine-', 'oracle')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachines]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', concat('nic-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('osDisk-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oracle'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'oradata'))]",
+                "[concat('Microsoft.Compute/disks/', concat('dataDisk-', 'oracle', '-', 'orabackup'))]"
+            ],
+            "properties": {
+                "hardwareProfile": { "vmSize": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.oracle]" },
+                "osProfile": {
+                    "computerName": "[concat('pg', copyIndex())]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "linuxConfiguration": { 
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [ 
+                                {
+                                    "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('adminSecureShellKey')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "storageProfile": {
+					"imageReference": {
+						"offer": "[variables('commonSettings').vmProfile.offer]",
+						"publisher": "[variables('commonSettings').vmProfile.publisher]",
+						"sku": "[variables('commonSettings').vmProfile.sku]",
+						"version": "[variables('commonSettings').vmProfile.version]"
+					},
+                   "osDisk": {
+                        "name": "[concat('osDisk-', 'oracle')]",
+                        "caching": "ReadWrite", 
+						"createOption": "FromImage"
+                    }, 
+					"dataDisks": [
+						{
+							"lun": 0,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]" }
+						},
+						{
+							"lun": 1,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oracle'))]" }
+						},
+						{
+							"lun": 2,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oradata'))]" }
+						},
+						{
+							"lun": 3,
+							"name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
+							"createOption": "attach",
+							"managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'orabackup'))]" }
+						}
+					]
+                },
+                "networkProfile": { 
+                    "networkInterfaces": [ 
+                        { 
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-', 'oracle'))]" 
+                        } 
+                    ] 
+                }
+            }
         }
-
-
-
-
 	]
 }
