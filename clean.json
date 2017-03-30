@@ -104,7 +104,12 @@
                         "name": "[concat('subnet-app-', parameters('tenantName'))]", 
                         "nsgName": "[concat('nsg-app-', parameters('tenantName'))]",
                         "addressRangePrefix": "10.0.1",
-                        "address": "10.0.1.0/24"
+                        "address": "10.0.1.0/24",
+						"privateIp": {
+							"appLoadBalancerApp": "10.0.1.250",
+							"solrLoadBalancer": "10.0.1.251",
+							"oracleVm": "10.0.1.252"
+						} 
                     }
                 }
             }
@@ -403,7 +408,7 @@
                         "name": "[concat('nic-ipcfg-', 'oracle')]",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.app.addressRangePrefix, '.250')]",
+                            "privateIPAddress": "[variables('commonSettings').vnet.subnet.app.privateIp.oracleVm]",
                             "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" }
                         }
                     }
@@ -567,7 +572,7 @@
                         "name": "appFrontendIPConfiguration",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.app.addressRangePrefix, '.9')]",
+                            "privateIPAddress": "[variables('commonSettings').vnet.subnet.app.privateIp.appLoadBalancer]",
                             "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" }
                         }
                     }
@@ -685,8 +690,8 @@
                         "name": "solrFrontendIPConfiguration",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.solr.addressRangePrefix, '.9')]",
-                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.solr.name)]" }
+                            "privateIPAddress": "[variables('commonSettings').vnet.subnet.app.privateIp.solrLoadBalancer]",
+                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.app.name)]" }
                         }
                     }
                 ],
