@@ -4,7 +4,7 @@
     "parameters": { "commonSettings": { "type": "object" } },
     "resources": [
         {   "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "[parameters('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "apiVersion": "[parameters('commonSettings').apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "name": "[parameters('commonSettings').vnet.subnet.web.nsgName]",
             "tags": { "displayName": "NetworkSecurityGroup web" },
@@ -14,7 +14,7 @@
             }
         },
         {   "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "[parameters('commonSettings').constants.apiVersions.networkSecurityGroups]",
+            "apiVersion": "[parameters('commonSettings').apiVersions.networkSecurityGroups]",
             "location": "[resourceGroup().location]",
             "name": "[parameters('commonSettings').vnet.subnet.app.nsgName]",
             "tags": { "displayName": "NetworkSecurityGroup app" },
@@ -24,7 +24,7 @@
             }
         },
         {   "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "[parameters('commonSettings').constants.apiVersions.virtualNetworks]",
+            "apiVersion": "[parameters('commonSettings').apiVersions.virtualNetworks]",
             "location": "[resourceGroup().location]",
             "name": "[parameters('commonSettings').vnet.name]",
             "tags": { "displayName": "Virtual Network" },
