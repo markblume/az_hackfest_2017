@@ -28,10 +28,10 @@ $resourceGroupName="intershop"
 
 $commonSettings = @{
 	tenantName=$tenantName
-#	cloudStorageDomain=$cloudStorageDomain
+	deploymentSku="small"
+	adminUsername=$env:USERNAME.ToLower()
+	adminSecureShellKey=$(Get-Content -Path $authorizedKeyFilename).Trim()
 #	repositoryUrl=$repositoryUrl
-#	adminUsername=$env:USERNAME.ToLower()
-#	adminSecureShellKey=$(Get-Content -Path $authorizedKeyFilename).Trim()
 }
 
 New-AzureRmResourceGroup `
