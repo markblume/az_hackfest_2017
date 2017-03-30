@@ -518,24 +518,28 @@
                             "lun": 0,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'oraarchive')]",
                             "createOption": "attach",
+							"caching": "Read",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oraarchive'))]" }
                         },
                         {
                             "lun": 1,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'oracle')]",
                             "createOption": "attach",
+							"caching": "None",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oracle'))]" }
                         },
                         {
                             "lun": 2,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'oradata')]",
                             "createOption": "attach",
+							"caching": "None",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'oradata'))]" }
                         },
                         {
                             "lun": 3,
                             "name": "[concat('dataDisk-', 'oracle', '-', 'orabackup')]",
                             "createOption": "attach",
+							"caching": "Read",
                             "managedDisk": { "id": "[resourceId('Microsoft.Compute/disks', concat('dataDisk-', 'oracle', '-', 'orabackup'))]" }
                         }
                     ]
@@ -667,5 +671,123 @@
                 }
             }
         },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[concat('loadbalancer-', 'solr')]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.loadBalancers]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "solrFrontendIPConfiguration",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(variables('commonSettings').vnet.subnet.solr.addressRangePrefix, '.9')]",
+                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.solr.name)]" }
+                        }
+                    }
+                ],
+                "backendAddressPools": [ { "name": "solrBackendAddressPool" } ],
+                "probes": [
+                    {
+                        "name": "httpProbe",
+                        "properties": {
+                            "port": 80,
+                            "protocol": "Http",
+                            "requestPath": "/gesundheit.aspx",
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "loadBalancingRule-http",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'solr')), '/frontendIPConfigurations/', 'solrFrontendIPConfiguration')]" },
+                            "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'solr')), '/backendAddressPools/', 'solrBackendAddressPool')]" },
+                            "probe": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'solr')), '/probes/', 'httpProbe')]" }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[concat('vmss-solr-', parameters('tenantName'))]",
+            "apiVersion": "[variables('commonSettings').constants.apiVersions.virtualMachineScaleSets]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('commonSettings').vnet.name)]",
+                "[concat('Microsoft.Network/loadBalancers/', concat('loadbalancer-', 'solr'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceTypes.solr]",
+                "capacity": "[variables('commonSettings').sizes[parameters('deploymentSku')].instanceCount.solr]",
+                "tier": "Standard"
+            },
+            "properties": {
+                "overprovision": true,
+                "singlePlacementGroup": true,
+                "upgradePolicy": { "mode": "Manual" },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[concat('solr')]",
+                        "adminUsername": "[variables('commonSettings').adminUsername]",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": true,
+                            "ssh": {
+                                "publicKeys": [
+                                    {
+                                        "path": "[concat('/home/', variables('commonSettings').adminUsername, '/.ssh/authorized_keys')]",
+                                        "keyData": "[variables('commonSettings').adminSecureShellKey]"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "storageProfile": {
+                        "imageReference": {
+                            "offer": "[variables('commonSettings').vmProfile.offer]",
+                            "publisher": "[variables('commonSettings').vmProfile.publisher]",
+                            "sku": "[variables('commonSettings').vmProfile.sku]",
+                            "version": "[variables('commonSettings').vmProfile.version]"
+                        },
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": { "storageAccountType": "Premium_LRS" }
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[concat('nic-', 'solr')]",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat('ipconfiguration-', 'solr')]",
+                                            "properties": {
+                                                "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('commonSettings').vnet.name), '/subnets/', variables('commonSettings').vnet.subnet.solr.name)]" },
+                                                "loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat('loadbalancer-', 'solr')), '/backendAddressPools/', 'solrBackendAddressPool')]" } ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
     ]
 }
