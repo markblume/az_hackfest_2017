@@ -1,7 +1,7 @@
 
 # $tenantName = (Get-Content -Path "tenantName.txt").Trim()
-$tenantName = "christ"
-$resourceGroupName="intershop2"
+$tenantName = "chri"
+$resourceGroupName="intershop0"
 
 $useGermany = $false
 
