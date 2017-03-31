@@ -75,23 +75,7 @@
           "properties": {
               "mode": "Incremental",
               "templateLink": {
-                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'shared-resources.json')]",
-                  "contentVersion": "1.0.0.0"
-              },
-              "parameters": {
-                  "commonSettings": {
-                      "value": "[variables('commonSettings')]"
-                  }
-              }
-          }
-      },
-      {   "name": "webservers",
-          "type": "Microsoft.Resources/deployments",
-          "apiVersion": "[variables('commonSettings').apiVersions.deployments]",
-          "properties": {
-              "mode": "Incremental",
-              "templateLink": {
-                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'webservers_', parameters('size'), '.json')]",
+                  "uri": "[concat(variables('commonSettings').repositoryUrl, 'sub_template.json')]",
                   "contentVersion": "1.0.0.0"
               },
               "parameters": {
